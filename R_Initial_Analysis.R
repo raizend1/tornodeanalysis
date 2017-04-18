@@ -52,6 +52,9 @@ dim(tor.nodes.malicious)
 # just relevant features of malicious
 tor.nodes.malicious.sub<- tor.nodes.malicious[,-which(names(tor.nodes.malicious) %in% c("Router.Name","OrAddress","ConsensusBandwidth","Bandwidth..KB.s.","Flag...Exit"))]
 
+# just relevant features of malicious
+tor.nodes<- tor.nodes[,-which(names(tor.nodes) %in% c("Router.Name","OrAddress","ConsensusBandwidth","Bandwidth..KB.s.","Flag...Exit"))]
+
 # get the relantionship
 library(FactoMineR)
 tor.nodes.mca<-MCA(tor.nodes.malicious.sub,quanti.sup = c(which(names(tor.nodes.malicious.sub)%in%c("Uptime..Hours.","ASNumber","ORPort"))),level.ventil = 0.2)
