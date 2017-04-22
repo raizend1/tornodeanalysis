@@ -64,8 +64,13 @@ summary(tor.nodes$FirstSeen)
 #0    5641    6005    5864    6220    6316 
 tor.nodes$FirstSeen <- log(tor.nodes$FirstSeen+1)
 
-#impute missing values
-
+list<-strsplit(as.character(tor.nodes$Platform), split=" on ")
+table(unlist(lapply(list,length)))
+#2 
+#7414
+x <- unlist(list)
+tor.nodes$tor.version <- x[seq(from=1, to= 14828, by = 2)]
+tor.nodes$os <- x[seq(from=2, to= 14829, by = 2)]
 
 # get subset with malicious nodes
 d.mal<-subset(tor.nodes,tor.nodes$Flag...Exit==1)
@@ -246,6 +251,12 @@ sort(dz.predict)
 #SC Seychelles
 #IS Iceland
 #TW Taiwan
+
+#**********************************************************************
+# Which Platforms are most often used by malicious nodes?
+#**********************************************************************
+
+
 
 #****************************************************
 #Handle the port nr as a numeric variable:
