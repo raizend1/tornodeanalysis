@@ -64,6 +64,9 @@ summary(tor.nodes$FirstSeen)
 #0    5641    6005    5864    6220    6316 
 tor.nodes$FirstSeen <- log(tor.nodes$FirstSeen+1)
 
+#impute missing values
+
+
 # get subset with malicious nodes
 d.mal<-subset(tor.nodes,tor.nodes$Flag...Exit==1)
 dim(d.mal)
@@ -232,11 +235,17 @@ mean(na.omit(as.numeric(dy.predict)))
 country.frequencies<-as.numeric(table(tor.nodes$Country.Code))
 #countries with at least 10 observations
 countries<-names(table(tor.nodes$Country.Code)[table(tor.nodes$Country.Code)>9])
-dz<-subset(tor.nodes, !(Country.Code %in% countries))
+dz<-subset(tor.nodes, Country.Code %in% countries)
 dz.predict<-with(dz, tapply(predictions, Country.Code, median, na.rm=TRUE))  
 dz.real<-with(dz, tapply(Flag...Exit, Country.Code, median, na.rm=TRUE))  
-dz.predict
+sort(dz.predict)
+# HU         RO         TW         IS         SC 
+# 0.23194269 0.26719297 0.45692281 0.51686669 0.55160586
 
+#The most suspicious country codes are: SC, IS, and TW!
+#SC Seychelles
+#IS Iceland
+#TW Taiwan
 
 #****************************************************
 #Handle the port nr as a numeric variable:
