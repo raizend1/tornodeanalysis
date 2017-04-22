@@ -62,6 +62,7 @@ tor.nodes$FirstSeen <- as.numeric(tor.nodes$FirstSeen - oldestDate) / 86400
 summary(tor.nodes$FirstSeen)
 #Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #0    5641    6005    5864    6220    6316 
+tor.nodes$FirstSeen <- log(tor.nodes$FirstSeen+1)
 
 # get subset with malicious nodes
 d.mal<-subset(tor.nodes,tor.nodes$Flag...Exit==1)
@@ -72,7 +73,6 @@ dim(d.mal)
 # Select features which are relevant to determine if a node is malicious.
 #**************************************************************************
 
-selected.features<-vector()
 #threshold of relative variable importance
 importance.threshold<-3.0
 
@@ -121,38 +121,88 @@ sort(variances.columns)[1:3]
 # Platform            DirPort          OrAddress             ASName          FirstSeen ConsensusBandwidth 
 # 155                543                623               1391               1404               2026 
 
-selected.inputs<-names(tor.nodes)[-c(1,5,6,13,15,16,22)]
+selected.inputs<-names(tor.nodes)[-c(1,5,6,13,15,16,22,25)]
 
 table(variances.columns==0)
 #FALSE   
 #19   
 
+tor.nodes$Flag...Exit <- as.numeric(tor.nodes$Flag...Exit)-1
+
 require("gbm")
 #fit the model
 m1.gbm <- gbm (Flag...Exit ~ . ,
-               distribution="laplace",
+               distribution="bernoulli",
                verbose=FALSE,
                interaction.depth=4,#6
                shrinkage=0.001,#0.001
-               n.trees = 3000,#3000
+               n.trees = 5000,#3000
                data=subset(tor.nodes, select = selected.inputs))
 
 #a table with variables:
 #var: feature name
 #rel.inf: relative importance measure
-ri<-summary(m1.gbm)
-# ri
-# var     rel.inf
-# DirPort                       DirPort 61.37140024
-# OrAddress                   OrAddress 20.07677804
-# Country.Code             Country.Code 13.81808553
-# Platform                     Platform  4.71609942
-# Bandwidth..KB.s.     Bandwidth..KB.s.  0.01214214
+(ri<-summary(m1.gbm))
+# var      rel.inf
+# DirPort                       DirPort 33.979547847
+# Country.Code             Country.Code 26.775799867
+# Platform                     Platform 19.164232024
+# Bandwidth..KB.s.     Bandwidth..KB.s. 12.345234689
+# Flag...Fast               Flag...Fast  2.125882948
+# ASNumber                     ASNumber  1.837809310
+# ORPort                         ORPort  1.343794679
+# FirstSeen                   FirstSeen  0.906545882
+# Uptime..Hours.         Uptime..Hours.  0.635596669
+
 #select data set with features having relative importance > threshold [%]
 ri<-ri[ri$rel.inf>importance.threshold,]
-selected.features<- ri$var
+(selected.features<- ri$var)
+#[1] DirPort          Country.Code     Platform         Bandwidth..KB.s.
 
-tor.nodes.malicious.sub<- tor.nodes.malicious[,-which(names(tor.nodes.malicious) %in% c("Router.Name","OrAddress","ConsensusBandwidth","Bandwidth..KB.s.","Flag...Exit"))]
+#plot the predicted values of label 
+plot(m1.gbm,  type="response", i.var = "DirPort")
+plot(m1.gbm,  type="response", i.var = "Country.Code")
+plot(m1.gbm,  type="response", i.var = "Platform")
+
+#****************************************************
+#Handle the port nr as a numeric variable:
+#
+#This helps us to see if there is a numeric trend.
+#****************************************************
+
+tor.nodes$DirPort.numeric<-as.numeric(tor.nodes$DirPort)
+selected.inputs<-names(tor.nodes)[-c(1,5,6,8,13,15,16,22,25)]
+
+#fit the model
+m2.gbm <- gbm (Flag...Exit ~ . ,
+               distribution="bernoulli",
+               verbose=FALSE,
+               interaction.depth=4,#6
+               shrinkage=0.001,#0.001
+               n.trees = 5000,#3000
+               data=subset(tor.nodes, select = selected.inputs))
+
+#a table with variables:
+#var: feature name
+#rel.inf: relative importance measure
+(ri<-summary(m2.gbm))
+# var     rel.inf
+# Country.Code             Country.Code 36.70300059
+# Platform                     Platform 28.98452394
+# Bandwidth..KB.s.     Bandwidth..KB.s. 17.90112003
+# ASNumber                     ASNumber  3.96636048
+# Flag...Fast               Flag...Fast  3.72120191
+# DirPort.numeric       DirPort.numeric  2.80809571
+
+#****************************************************
+#Conclusion:
+#If we treat DirPort as a numeric variable,
+#it does not help to predict malicious nodes any more.
+#This indicates that there is no trend, such as e.g.
+#ports with a higher number are more likely to be 
+#associated with malicious nodes.
+#It is only the identity of nodes that count.
+#****************************************************
 
 # get the relationship
 library(FactoMineR)
