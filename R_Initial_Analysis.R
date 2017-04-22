@@ -201,36 +201,22 @@ tor.nodes$predictions<-predictions
 N<-dim(tor.nodes)[1]
 
 #the ports with the highest predicted probabilities of being used by a malitious node: 
-sort(with(tor.nodes,tapply(predictions, DirPort, mean)))    #[(N-100):N]
-# 0.91686984 0.91695413 0.91806824 0.91833943 0.91895788 0.91895840 0.91897258 
-# 667       3307       1194       1415        426         43        994 
-# 0.91955718 0.91961238 0.92036502 0.92065628 0.92080543 0.92121384 0.92472638 
-# 24       1180       3090       9230 
-# 0.92574199 0.94387658 0.96423084 0.97546302 
+sort(with(tor.nodes,tapply(predictions, DirPort, mean)))  
 
 port.observations<-with(tor.nodes,tapply(predictions, DirPort, length))
 table(port.observations)
-# port.observations
-# 1    2    3    4    5    7    8   10   11   12   19   20   21   26   27 
-# 466   29   12    7    3    4    2    1    1    2    1    1    2    1    1 
-# 30   34   36   40   58  118 1379 2348 2509 
-# 1    1    2    1    1    1    1    1    1
 hist(port.observations)
 
 #The problem is that for many ports there are only very few observations in the data set!
 #Let's restrict the analysis to ports with at least 10 observations:
-ports.g10<-names(port.observations[port.observations>10])
+ports.g10<-names(port.observations[port.observations>9])
 #remove "None"
 ports.g10<-ports.g10[-19]
 
 dx<-subset(tor.nodes, DirPort %in% ports.g10)
 sort(with(dx, tapply(predictions, DirPort, mean)))  
-# 19030       9004       9032       9091       9002        143       9040 
-# 0.02848896 0.03115970 0.03171387 0.03636709 0.04161773 0.04882471 0.04920738 
-# 9033        110       None       8080       9030       9031        443 
-# 0.05109938 0.07312889 0.08344418 0.08969493 0.09151952 0.12241255 0.15789557 
-# 9001         80         21       9101         81 
-# 0.18809335 0.23524427 0.43247232 0.53080031 0.62971128 
+# 21       9101         81 
+# 0.43782984 0.53727490 0.63365801
 
 ##The only ports that are often used and which are significantly involved
 ## in malicious activities are: 21, 9101, 81 !!!
@@ -241,7 +227,7 @@ dy.real<-with(dy, tapply(Flag...Exit, DirPort, mean))
 mean(na.omit(as.numeric(dy.real)))
 #0.06394947
 mean(na.omit(as.numeric(dy.predict)))
-#0.1278079
+#[1] 0.1334897
 #Conclusion:
 #In general, ports with less than 10 observations are rarely used by malicious nodes.
 #There are some exceptions, but we do not have enough observations for them to draw conclusions.
@@ -254,11 +240,11 @@ country.frequencies<-as.numeric(table(tor.nodes$Country.Code))
 #countries with at least 10 observations
 countries<-names(table(tor.nodes$Country.Code)[table(tor.nodes$Country.Code)>9])
 dz<-subset(tor.nodes, Country.Code %in% countries)
-dz.predict<-with(dz, tapply(predictions, Country.Code, median, na.rm=TRUE))  
-dz.real<-with(dz, tapply(Flag...Exit, Country.Code, median, na.rm=TRUE))  
+dz.predict<-with(dz, tapply(predictions, Country.Code, mean, na.rm=TRUE))  
+dz.real<-with(dz, tapply(Flag...Exit, Country.Code, mean, na.rm=TRUE))  
 sort(dz.predict)
-# HU         RO         TW         IS         SC 
-# 0.23194269 0.26719297 0.45692281 0.51686669 0.55160586
+# AR         SK         HU         RO         TW         IS         SC 
+# 0.29273176 0.29972343 0.30694436 0.40218590 0.48574458 0.48747900 0.63313425 
 
 #The most suspicious country codes are: SC, IS, and TW!
 #SC Seychelles
@@ -266,8 +252,20 @@ sort(dz.predict)
 #TW Taiwan
 
 #**********************************************************************
-# Which Platforms are most often used by malicious nodes?
+# Which tor versions are most often used by malicious nodes?
 #**********************************************************************
+versions<-names(table(tor.nodes$tor.version)[table(tor.nodes$tor.version)>9])
+dz<-subset(tor.nodes, tor.version %in% versions)
+dz.predict<-with(dz, tapply(predictions, tor.version, mean, na.rm=TRUE))  
+dz.real<-with(dz, tapply(Flag...Exit, tor.version, mean, na.rm=TRUE))  
+sort(dz.predict)
+# Tor 0.2.5.10     Tor 0.3.0.3-alpha Tor 0.3.1.0-alpha-dev        Tor 0.3.0.4-rc 
+# 0.22357852            0.28807329            0.34832444            0.43798941 
+
+#The Tor versions 0.3.1.0-alpha-dev and Tor 0.3.0.4-rc are most likely to be used 
+#by malicious nodes!
+
+
 
 
 
