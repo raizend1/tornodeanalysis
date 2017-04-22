@@ -44,15 +44,15 @@ str(tor.nodes)
 # $ OrAddress         : Factor w/ 623 levels "[2001:1470:fff7:12:e0c5:f8ff:fea1:9be3]:443",..: 623 539 623 623 623 623 623 370 623 152 ...
 # ind <- apply( df1 , 1 , function(x) any( x > 0 ) )
 
-# get all maliciuos
+# get all malicious nodes
 tor.nodes.malicious<-subset(tor.nodes,tor.nodes$Flag...Exit==1)
 dim(tor.nodes.malicious)
 # [1] 869  25
 
-# just relevant features of malicious
+# select features which are relevant to determine if a node is malicious
 tor.nodes.malicious.sub<- tor.nodes.malicious[,-which(names(tor.nodes.malicious) %in% c("Router.Name","OrAddress","ConsensusBandwidth","Bandwidth..KB.s.","Flag...Exit"))]
 
 # get the relantionship
 library(FactoMineR)
 tor.nodes.mca<-MCA(tor.nodes.malicious.sub,quanti.sup = c(which(names(tor.nodes.malicious.sub)%in%c("Uptime..Hours.","ASNumber","ORPort"))),level.ventil = 0.2)
->>>>>>> origin/master
+
