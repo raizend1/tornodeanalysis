@@ -164,6 +164,66 @@ plot(m1.gbm,  type="response", i.var = "DirPort")
 plot(m1.gbm,  type="response", i.var = "Country.Code")
 plot(m1.gbm,  type="response", i.var = "Platform")
 
+#fit the model again but only with the selected features
+m2.gbm <- gbm (Flag...Exit ~ . ,
+               distribution="bernoulli",
+               verbose=FALSE,
+               interaction.depth=4,#6
+               shrinkage=0.001,#0.001
+               n.trees = 5000,#3000
+               data=subset(tor.nodes, 
+                           select = c("DirPort","Country.Code","Platform","Bandwidth..KB.s.","Flag...Exit")))
+
+predictions<-predict(m2.gbm, tor.nodes, n.trees=5000, type="response")
+tor.nodes$predictions<-predictions
+
+N<-dim(tor.nodes)[1]
+
+#the ports with the highest predicted probabilities of being used by a malitious node: 
+sort(with(tor.nodes,tapply(predictions, DirPort, mean)))    #[(N-100):N]
+# 0.91686984 0.91695413 0.91806824 0.91833943 0.91895788 0.91895840 0.91897258 
+# 667       3307       1194       1415        426         43        994 
+# 0.91955718 0.91961238 0.92036502 0.92065628 0.92080543 0.92121384 0.92472638 
+# 24       1180       3090       9230 
+# 0.92574199 0.94387658 0.96423084 0.97546302 
+
+port.observations<-with(tor.nodes,tapply(predictions, DirPort, length))
+table(port.observations)
+# port.observations
+# 1    2    3    4    5    7    8   10   11   12   19   20   21   26   27 
+# 466   29   12    7    3    4    2    1    1    2    1    1    2    1    1 
+# 30   34   36   40   58  118 1379 2348 2509 
+# 1    1    2    1    1    1    1    1    1
+hist(port.observations)
+
+#The problem is that for many ports there are only very few observations in the data set!
+#Let's restrict the analysis to ports with at least 10 observations:
+ports.g10<-names(port.observations[port.observations>10])
+#remove "None"
+ports.g10<-ports.g10[-19]
+
+dx<-subset(tor.nodes, DirPort %in% ports.g10)
+sort(with(dx, tapply(predictions, DirPort, mean)))  
+# 19030       9004       9032       9091       9002        143       9040 
+# 0.02848896 0.03115970 0.03171387 0.03636709 0.04161773 0.04882471 0.04920738 
+# 9033        110       None       8080       9030       9031        443 
+# 0.05109938 0.07312889 0.08344418 0.08969493 0.09151952 0.12241255 0.15789557 
+# 9001         80         21       9101         81 
+# 0.18809335 0.23524427 0.43247232 0.53080031 0.62971128 
+
+##The only ports that are often used and which are significantly involved
+## in malicious activities are: 21, 9101, 81 !!!
+
+dy<-subset(tor.nodes, !(DirPort %in% ports.g10))
+dy.predict<-with(dy, tapply(predictions, DirPort, mean))  
+dy.real<-with(dy, tapply(Flag...Exit, DirPort, mean))  
+mean(na.omit(as.numeric(dy.real)))
+#0.06394947
+mean(na.omit(as.numeric(dy.predict)))
+#0.1278079
+#Conclusion:
+#The ports with less than 10 observations are rarely used by malicious nodes.
+
 #****************************************************
 #Handle the port nr as a numeric variable:
 #
@@ -174,7 +234,7 @@ tor.nodes$DirPort.numeric<-as.numeric(tor.nodes$DirPort)
 selected.inputs<-names(tor.nodes)[-c(1,5,6,8,13,15,16,22,25)]
 
 #fit the model
-m2.gbm <- gbm (Flag...Exit ~ . ,
+m3.gbm <- gbm (Flag...Exit ~ . ,
                distribution="bernoulli",
                verbose=FALSE,
                interaction.depth=4,#6
@@ -185,7 +245,7 @@ m2.gbm <- gbm (Flag...Exit ~ . ,
 #a table with variables:
 #var: feature name
 #rel.inf: relative importance measure
-(ri<-summary(m2.gbm))
+(ri<-summary(m3.gbm))
 # var     rel.inf
 # Country.Code             Country.Code 36.70300059
 # Platform                     Platform 28.98452394
