@@ -222,7 +222,21 @@ mean(na.omit(as.numeric(dy.real)))
 mean(na.omit(as.numeric(dy.predict)))
 #0.1278079
 #Conclusion:
-#The ports with less than 10 observations are rarely used by malicious nodes.
+#In general, ports with less than 10 observations are rarely used by malicious nodes.
+#There are some exceptions, but we do not have enough observations for them to draw conclusions.
+
+
+#**********************************************************************
+# Which countries are most often used by malicious nodes?
+#**********************************************************************
+country.frequencies<-as.numeric(table(tor.nodes$Country.Code))
+#countries with at least 10 observations
+countries<-names(table(tor.nodes$Country.Code)[table(tor.nodes$Country.Code)>9])
+dz<-subset(tor.nodes, !(Country.Code %in% countries))
+dz.predict<-with(dz, tapply(predictions, Country.Code, median, na.rm=TRUE))  
+dz.real<-with(dz, tapply(Flag...Exit, Country.Code, median, na.rm=TRUE))  
+dz.predict
+
 
 #****************************************************
 #Handle the port nr as a numeric variable:
