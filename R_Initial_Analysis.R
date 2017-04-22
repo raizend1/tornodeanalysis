@@ -143,7 +143,7 @@ sort(variances.columns)[1:3]
 # Platform            DirPort          OrAddress             ASName          FirstSeen ConsensusBandwidth 
 # 155                543                623               1391               1404               2026 
 
-selected.inputs<-names(tor.nodes)[-c(1,5,6,13,15,16,18,22,25,26,27)]
+selected.inputs<-names(tor.nodes)[-c(1,5,6,13,15,16,18,22,25)]
 
 table(variances.columns==0)
 #FALSE   
@@ -165,26 +165,25 @@ m1.gbm <- gbm (Flag...Exit ~ . ,
 #var: feature name
 #rel.inf: relative importance measure
 (ri<-summary(m1.gbm))
-# var      rel.inf
-# DirPort                       DirPort 33.979547847
-# Country.Code             Country.Code 26.775799867
-# Platform                     Platform 19.164232024
-# Bandwidth..KB.s.     Bandwidth..KB.s. 12.345234689
-# Flag...Fast               Flag...Fast  2.125882948
-# ASNumber                     ASNumber  1.837809310
-# ORPort                         ORPort  1.343794679
-# FirstSeen                   FirstSeen  0.906545882
-# Uptime..Hours.         Uptime..Hours.  0.635596669
+# var     rel.inf
+# DirPort                       DirPort 38.36817791
+# Country.Code             Country.Code 28.86613036
+# Bandwidth..KB.s.     Bandwidth..KB.s. 13.66309204
+# tor.version               tor.version  9.69548284
+# Flag...Fast               Flag...Fast  2.71564919
+# ASNumber                     ASNumber  2.03119917
+# ORPort                         ORPort  1.41108659
+# FirstSeen                   FirstSeen  1.30859657
 
 #select data set with features having relative importance > threshold [%]
 ri<-ri[ri$rel.inf>importance.threshold,]
 (selected.features<- ri$var)
-#[1] DirPort          Country.Code     Platform         Bandwidth..KB.s.
+#[1] DirPort          Country.Code     Bandwidth..KB.s. tor.version
 
 #plot the predicted values of label 
 plot(m1.gbm,  type="response", i.var = "DirPort")
 plot(m1.gbm,  type="response", i.var = "Country.Code")
-plot(m1.gbm,  type="response", i.var = "Platform")
+plot(m1.gbm,  type="response", i.var = "Bandwidth..KB.s.")
 
 #fit the model again but only with the selected features
 m2.gbm <- gbm (Flag...Exit ~ . ,
@@ -194,7 +193,7 @@ m2.gbm <- gbm (Flag...Exit ~ . ,
                shrinkage=0.001,#0.001
                n.trees = 5000,#3000
                data=subset(tor.nodes, 
-                           select = c("DirPort","Country.Code","Platform","Bandwidth..KB.s.","Flag...Exit")))
+                           select = c("DirPort","Country.Code","tor.version","Bandwidth..KB.s.","Flag...Exit")))
 
 predictions<-predict(m2.gbm, tor.nodes, n.trees=5000, type="response")
 tor.nodes$predictions<-predictions
