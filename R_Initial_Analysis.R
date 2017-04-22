@@ -69,8 +69,22 @@ table(unlist(lapply(list,length)))
 #2 
 #7414
 x <- unlist(list)
-tor.nodes$tor.version <- x[seq(from=1, to= 14828, by = 2)]
-tor.nodes$os <- x[seq(from=2, to= 14829, by = 2)]
+tor.nodes$tor.version <- as.factor(x[seq(from=1, to= 14828, by = 2)])
+table(tor.nodes$tor.version)
+
+tor.nodes$tor.version.dev<-as.factor(ifelse(grepl(pattern="-dev",tor.nodes$tor.version),1,0))
+table(tor.nodes$tor.version.dev)
+
+tor.nodes$tor.version.alpha<-as.factor(ifelse(grepl(pattern="-alpha",tor.nodes$tor.version),1,0))
+table(tor.nodes$tor.version.alpha)
+
+tor.nodes$os <- as.factor(x[seq(from=2, to= 14829, by = 2)])
+table(tor.nodes$os)
+
+tor.nodes$os.simple<-as.factor(ifelse(grepl(pattern="Windows",tor.nodes$os),"windows","unix_linux"))
+table(tor.nodes$os.simple)
+# unix_linux    windows 
+# 7204        210 
 
 # get subset with malicious nodes
 d.mal<-subset(tor.nodes,tor.nodes$Flag...Exit==1)
@@ -129,7 +143,7 @@ sort(variances.columns)[1:3]
 # Platform            DirPort          OrAddress             ASName          FirstSeen ConsensusBandwidth 
 # 155                543                623               1391               1404               2026 
 
-selected.inputs<-names(tor.nodes)[-c(1,5,6,13,15,16,22,25)]
+selected.inputs<-names(tor.nodes)[-c(1,5,6,13,15,16,18,22,25,26,27)]
 
 table(variances.columns==0)
 #FALSE   
