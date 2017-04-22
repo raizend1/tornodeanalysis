@@ -1,21 +1,21 @@
 #remove old objects for safety resons
 rm(list=ls(all=TRUE))
-
+#set seed to make analysis reproducible if any pseudo random number generator is used by any function
 set.seed(123)
-
-#utility function
+#utility function to glue together text without separator
 glue<-function(...){paste(...,sep="")}
-
+#read the local paths to different directories from an external file
 source("workingDir.R")
-
-setwd(path)
-
-# read all the data there
-tor.nodes <- read.csv(glue(dataDir,"/Tor_query_EXPORT.csv"),header=TRUE,sep = ",",dec = ".")#,na.strings=c("","NA")
+#change to the data directory
+setwd(dataDir)
+#Read in data set describing known Tor exit nodes. 
+#Source: http://torstatus.blutmagie.de/
+tor.nodes <- read.csv("Tor_query_EXPORT.csv",header=TRUE,sep = ",",dec = ".")#,na.strings=c("","NA")
+#change all inputs of type flag to a factor
 tor.nodes[,grepl("Flag...", names(tor.nodes))] <- lapply(tor.nodes[,grepl("Flag...", names(tor.nodes))],as.factor)
 dim(tor.nodes)
+#[1] 7414   25
 str(tor.nodes)
-
 # 'data.frame':	7414 obs. of  25 variables:
 # $ Router.Name       : Factor w/ 6389 levels "00000000000X",..: 4537 1055 2465 5907 905 20 904 263 5545 1189 ...
 # $ Country.Code      : Factor w/ 82 levels "A1","AE","AL",..: 79 66 57 20 57 20 57 57 33 57 ...
