@@ -265,10 +265,6 @@ sort(dz.predict)
 #The Tor versions 0.3.1.0-alpha-dev and Tor 0.3.0.4-rc are most likely to be used 
 #by malicious nodes!
 
-
-
-
-
 #****************************************************
 #Handle the port nr as a numeric variable:
 #
@@ -308,8 +304,4 @@ m3.gbm <- gbm (Flag...Exit ~ . ,
 #associated with malicious nodes.
 #It is only the identity of nodes that count.
 #****************************************************
-
-# get the relationship
-library(FactoMineR)
-tor.nodes.mca<-MCA(tor.nodes.malicious.sub,quanti.sup = c(which(names(tor.nodes.malicious.sub)%in%c("Uptime..Hours.","ASNumber","ORPort"))),level.ventil = 0.2)
 
